@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            /* 画面の高さいっぱい */
+            display: flex;
+            justify-content: center;
+            /* 横方向の中央 */
+            align-items: center;
+            /* 縦方向の中央 */
+            flex-direction: column;
+        }
+
+        /* 入れ物：並び方 */
+        #buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* ボタン1個1個：大きさ */
+        #buttons button {
+            font-size: 16px;
+            padding: 8px 12px;
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+        }
+
+        @media (max-width: 600px) {
+
+            /* スマホでは入れ物の中を縦に並べる → 2段になる */
+            #buttons {
+                flex-direction: column;
+            }
+
+            /* スマホではボタンを大きくする */
+            #buttons button {
+                font-size: 20px;
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <svg width="350" height="200">
+        <g stroke="black" stroke-width="3">
+            <line x1="10" y1="60.5" x2="340" y2="60.5" />
+            <line x1="10" y1="80.5" x2="340" y2="80.5" />
+            <line x1="10" y1="100.5" x2="340" y2="100.5" />
+            <line x1="10" y1="120.5" x2="340" y2="120.5" />
+            <line x1="10" y1="140.5" x2="340" y2="140.5" />
+        </g>
+        <!-- 音符 -->
+        <g id="note" transform="translate(175, 80)">
+            <!-- 玉 -->
+            <ellipse cx="0" cy="0" rx="11" ry="8" transform="rotate(-20)" fill="black" />
+            <!-- 棒 -->
+            <line id="stem" x1="10" y1="-3" x2="10" y2="-70" stroke="black" stroke-width="3" />
+        </g>
+        <line id="noteLine1" x1="155" y1="160.5" x2="195" y2="160.5" stroke="black" stroke-width="3" />
+        <line id="noteLine2" x1="155" y1="40.5" x2="195" y2="40.5" stroke="black" stroke-width="3" />
+        <line id="noteLine3" x1="155" y1="20.5" x2="195" y2="20.5" stroke="black" stroke-width="3" />
+    </svg>
+
+    <div id="buttons">
+        <div class="row">
+            <button>ド</button>
+            <button>レ</button>
+            <button>ミ</button>
+            <button>ファ</button>
+        </div>
+        <div class="row">
+            <button>ソ</button>
+            <button>ラ</button>
+            <button>シ</button>
+        </div>
+    </div>
+
+    <p id="result"></p>
+
+    <script>
+        //要素の取得
+        const note = document.getElementById("note");
+        const stem = document.getElementById("stem");
+        const noteLine1 = document.getElementById("noteLine1");
+        const noteLine2 = document.getElementById("noteLine2");
+        const noteLine3 = document.getElementById("noteLine3");
+        const buttons = document.querySelectorAll("#buttons button");
+        const result = document.getElementById("result");
+
+        const noteNames = [
+            "ド", "レ", "ミ", "ファ", "ソ", "ラ", "シ",
+            "ド", "レ", "ミ", "ファ", "ソ", "ラ", "シ",
+            "ド"
+        ];
+
+        // 基準になる数字
+        const bottomY = 140.5;  // 一番下の線（段0）のy座標
+        const stepHeight = 10; // 1段上がるごとに動く量（線の間隔20の半分）
+
+        let step;
+
+        function nextQuestion() {
+            result.textContent = "";
+
+            const prevStep = step;
+
+            // ランダムに段の番号を選ぶ（-2 ~ 12）
+            do {
+                step = Math.floor(Math.random() * 15) - 2;
+            } while (prevStep === step);
+
+            // 段の番号からy座標を計算する
+            const y = bottomY - step * stepHeight;
+
+            // 音符をその位置に移動する
+            note.setAttribute("transform", `translate(175, ${y})`);
+
+            if (step >= 4) {// 下向きの棒にする
+                stem.setAttribute("x1", -10);
+                stem.setAttribute("y1", 3);
+                stem.setAttribute("x2", -10);
+                stem.setAttribute("y2", 70);
+            } else {// 上向きの棒にする
+                stem.setAttribute("x1", 10);
+                stem.setAttribute("y1", -3);
+                stem.setAttribute("x2", 10);
+                stem.setAttribute("y2", -70);
+            }
+
+            // 加線の表示・非表示
+            noteLine1.setAttribute("visibility", step <= -2 ? "visible" : "hidden");  // 下のドの加線
+            noteLine2.setAttribute("visibility", step >= 10 ? "visible" : "hidden");  // ラの加線
+            noteLine3.setAttribute("visibility", step >= 12 ? "visible" : "hidden");  // 上のドの加線
+        }
+
+        nextQuestion();
+
+        for (const button of buttons) {
+            button.addEventListener("click", () => {
+                if (button.textContent === noteNames[step + 2]) {
+                    result.textContent = "正解";
+                    setTimeout(() => {
+                        nextQuestion();
+                    }, 600); // 600ミリ秒
+                } else {
+                    result.textContent = "不正解";
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>
